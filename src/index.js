@@ -17,7 +17,7 @@ import {
 } from "firebase/firestore";
 
 import { Chatroom } from "./chat.js";
-import { ChatUI } from "./ui.js";
+import { ChatUI, clearCurrentActiveState } from "./ui.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCsjUzEwfR-lLJGYWrprMV7Eyd-tfnn0zA",
@@ -45,9 +45,9 @@ const rooms = document.querySelector(".chat-rooms");
 // add a new chat
 newhChatForm.addEventListener("submit", (e) => {
   e.preventDefault();
+
   const message = newhChatForm.message.value.trim();
-  chatroom
-    .addChat(message)
+  chatroom.addChat(message)
     .then(() => newhChatForm.reset())
     .catch((err) => console.log(err.message));
 });
@@ -59,13 +59,13 @@ newNameForm.addEventListener("submit", (e) => {
   //update username in the chatroom
   const newName = e.target.name.value.trim();
   chatroom.updateName(newName);
+
   // reset the form
   newNameForm.reset();
+
   // show and hide the update message feedback
   updateMssg.innerText = `Your name was updated to ${newName}`;
-  setTimeout(() => {
-    updateMssg.innerText = "";
-  }, 3000);
+  setTimeout(() => updateMssg.innerText = "", 3000);
 });
 
 // update the chat room
@@ -73,7 +73,18 @@ rooms.addEventListener("click", (e) => {
   if (e.target.tagName === "BUTTON") {
     chatUI.clear();
     chatroom.updateRoom(e.target.getAttribute("id"));
-    chatroom.getChats((chat) => chatUI.render(chat));
+    chatroom.getChats((chat) => {
+      chatUI.render(chat);
+      setTimeout(clearCurrentActiveState, 1000);
+    });
+
+    // Remove the active tag from the old room
+    e.target.parentNode.querySelectorAll(".active-room").forEach(button => {
+      if(button != e.target){
+        button.classList.remove("active-room");
+      }
+    })
+    e.target.classList.toggle("active-room");
   }
 });
 
@@ -82,7 +93,11 @@ const username = localStorage.username ? localStorage.username : "Anon";
 
 // class instances
 const chatUI = new ChatUI(chatList);
-const chatroom = new Chatroom("gaming", username);
+const chatroom = new Chatroom("general", username);
 
 // get chats and render
-chatroom.getChats((data) => chatUI.render(data));
+chatroom.getChats((data) => {
+  chatUI.render(data);
+  setTimeout(clearCurrentActiveState, 1000);
+});
+

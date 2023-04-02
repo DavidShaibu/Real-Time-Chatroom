@@ -51,26 +51,27 @@ export class Chatroom {
     this.chats = collection(db, "chats");
     this.unsub;
   }
+
   async addChat(message) {
     // format a chat object
-    let time = serverTimestamp();
     const chat = {
       message,
       room: this.room,
       username: this.username,
-      created_at: time == null ? null : time,
+      created_at: serverTimestamp()
     };
     // save the chat document
-    const response = await addDoc(this.chats, chat);
-    return response;
+     return await addDoc(this.chats, chat);
   }
+
   getChats(callback) {
-    const q = query(
+    const queryRoom = query(
       this.chats,
       where("room", "==", this.room),
       orderBy("created_at")
     );
-    this.unsub = onSnapshot(q, (snapshot) => {
+
+    this.unsub = onSnapshot(queryRoom, (snapshot) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === "modified") {
           // update the ui with instant chats
@@ -84,10 +85,12 @@ export class Chatroom {
       });
     });
   }
+
   updateName(username) {
     this.username = username;
     localStorage.setItem("username", username);
   }
+
   updateRoom(room) {
     this.room = room;
     if (this.unsub) {
@@ -95,3 +98,4 @@ export class Chatroom {
     }
   }
 }
+

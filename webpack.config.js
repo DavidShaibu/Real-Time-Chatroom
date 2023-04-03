@@ -12,7 +12,7 @@ module.exports = {
         filename: '[name].js'
     },
     devServer: {
-        contentBase: path.join(__dirname, 'dist')
+        static: path.join(__dirname, 'dist')
     },
     module: {
         rules:[{
